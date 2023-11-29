@@ -1,0 +1,91 @@
+package ai.labs.NPuzzle;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import ai.Pair;
+
+public class Dfs {
+    int[][] given;
+    int[][] target;
+    private int n;
+
+    int ans = -1;
+
+    int dr[] = { -1, 0, 1, 0 };
+    int dc[] = { 0, 1, 0, -1 };
+
+    Dfs(int[][] g, int[][] t) {
+        given = g;
+        target = t;
+        n = target.length;
+    }
+
+    public int solve() {
+        Pair<Integer, Integer> p = getZero(given);
+        dfs(given, target, p.first, p.second, 0, 4, new HashSet<>());
+        return ans;
+    }
+
+    private boolean dfs(int[][] curr, int[][] target, int ci, int cj, int l, int bound, Set<String> visited) {
+        if (bound == 0)
+            return false;
+        if (Arrays.deepEquals(curr, target)) {
+            ans = l;
+            System.out.println(l);
+            return true;
+        }
+        visited.add(Arrays.deepToString(curr));
+        ArrayList<int[][]> neighbors = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            int ni = ci + dr[i];
+            int nj = cj + dc[i];
+
+            if (ni < 0 || ni >= n || nj < 0 || nj >= n)
+                continue;
+            
+            int[][] nm = getClone(curr);
+            swap(nm, ni, nj, ci, cj);
+            if (!visited.contains(Arrays.deepToString(nm)))
+                neighbors.add(nm);
+        }  
+        boolean ores = false;
+        for (int[][] n: neighbors) {
+            Pair<Integer, Integer> z = getZero(n);
+            boolean res = dfs(n, target, z.first, z.second, l + 1, bound - 1, visited);
+            ores = ores || res;
+            if (res)
+                System.out.println(Arrays.deepToString(n));
+        }
+
+        return ores;
+    }
+
+    private int[][] getClone(int[][] cm) {
+        int[][] newM = new int[cm.length][cm[0].length];
+        for (int i = 0; i < cm.length; i++) {
+            for (int j = 0; j < cm.length; j++) {
+                newM[i][j] = cm[i][j];
+            }
+        }
+        return newM;
+    }
+
+    private void swap(int[][] nm, int ni, int nj, int ci, int cj) {
+        int temp = nm[ci][cj];
+        nm[ci][cj] = nm[ni][nj];
+        nm[ni][nj] = temp;
+    }
+
+    public Pair<Integer, Integer> getZero(int[][] m) {
+        for (int i = 0; i < m.length; i++) {
+            for (int j = 0; j < m[0].length; j++) {
+                if (m[i][j] == 0)
+                    return new Pair<Integer, Integer>(i, j);
+            }
+        }
+        return null;
+    }
+}
