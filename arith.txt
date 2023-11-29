@@ -1,0 +1,77 @@
+package ai.labs.csp;
+
+import java.util.*;
+
+public class CryptArithmetic {
+    static Scanner sc = new Scanner(System.in);
+    public static void main(String[] args) {
+
+        String w1 = sc.nextLine();
+        String w2 = sc.nextLine();
+        String w3 = sc.nextLine();
+
+        HashMap<Character, Integer> charMap = new HashMap<>();
+        boolean[] usedNums = new boolean[10];
+
+        fillMap(w1, charMap);
+        fillMap(w2, charMap);
+        fillMap(w3, charMap);
+
+        String uniqueString = "";
+
+        if (uniqueString.length() >= 10)
+            return;
+        
+        for (Character c : charMap.keySet())
+            uniqueString += c;
+        
+        System.out.println(uniqueString);
+        boolean res = permute(uniqueString, charMap, usedNums, 0, w1, w2, w3);
+        System.out.println(charMap);
+        System.out.println(res);
+    }
+
+    private static boolean permute(String uniqueStr, HashMap<Character, Integer> mp, boolean[] usedNums, int idx, String w1,
+            String w2, String w3) {
+        if (idx == uniqueStr.length()) {
+            long num1 = getNum(mp, w1);
+            long num2 = getNum(mp, w2);
+            long num3 = getNum(mp, w3);
+
+            if (num1 + num2 == num3) {
+                System.out.println(mp);
+                return true;
+            }
+            return false;
+        }   
+
+        for (int i = 0; i < 10; i++) {
+            if (!usedNums[i]) {
+                mp.put(uniqueStr.charAt(idx), i);
+                usedNums[i] = true;
+                if (permute(uniqueStr, mp, usedNums, idx + 1, w1, w2, w3))
+                    return true;
+                mp.put(uniqueStr.charAt(idx), null);
+                usedNums[i] = false;
+            }
+        }
+        return false;
+    }
+
+    private static void fillMap(String s, HashMap<Character, Integer> mp) {
+        for (int i = 0; i < s.length(); i++) {
+            if (!mp.containsKey(s.charAt(i))) {
+                mp.put(s.charAt(i), -1);
+            }
+        }
+    }
+
+    private static long getNum(HashMap<Character, Integer> mp, String s) {
+        String num = "";
+        for (int k = 0; k < s.length(); k++) {
+            char ch = s.charAt(k);
+            num += mp.get(ch); 
+        }
+        return Long.parseLong(num);
+    }
+}
