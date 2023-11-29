@@ -1,0 +1,118 @@
+package ai.labs.NPuzzle;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+
+import ai.Pair;
+
+public class BestFirst {
+    int[][] given;
+    int[][] target;
+    private int n;
+
+    private Pair<Integer, Integer> targetIJ;
+
+    int dr[] = { -1, 0, 1, 0 };
+    int dc[] = { 0, 1, 0, -1 };
+
+    BestFirst(int[][] g, int[][] t) {
+        given = g;
+        target = t;
+        n = target.length;
+        targetIJ = getZero(target);
+    }
+
+    public int solve() {
+        Pair<Integer, Integer> p = getZero(given);
+        
+        int cr = p.first;
+        int cc = p.second;
+        
+        PriorityQueue<BSNode> pq = new PriorityQueue<>((BSNode a, BSNode b) -> Integer.compare(a.h, b.h));
+        pq.offer(new BSNode(cr, cc, getHeuristic(cr, cc), given, null));
+
+        Set<String> visited = new HashSet<>();
+        visited.add(Arrays.deepToString(given));
+
+        while (!pq.isEmpty()) {
+            BSNode curr = pq.poll();
+            int ci = curr.r;
+            int cj = curr.c;
+            int[][] cm = curr.mat;
+
+            if (Arrays.deepEquals(cm, target)) {
+                int cnt = 0;
+                while (curr.parent != null) {
+                    System.out.println(Arrays.deepToString(curr.parent.mat));
+                    curr = curr.parent;
+                    cnt++;
+                }
+                return cnt;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int ni = ci + dr[i];
+                int nj = cj + dc[i];
+
+                if (ni < 0 || ni >= n || nj < 0 || nj >= n)
+                    continue;
+
+                int[][] nm = getClone(cm);
+
+                swap(nm, ni, nj, ci, cj);
+
+                if (!visited.contains(Arrays.deepToString(nm))) {
+                    pq.add(new BSNode(ni, nj, getHeuristic(ni, nj), nm, curr));
+                    visited.add(Arrays.deepToString(nm));
+                }
+            }
+        }
+        return -1;
+    }
+
+    private int[][] getClone(int[][] cm) {
+        int[][] newM = new int[cm.length][cm[0].length];
+        for (int i = 0; i < cm.length; i++) {
+            for (int j = 0; j < cm.length; j++) {
+                newM[i][j] = cm[i][j];
+            }
+        }
+        return newM;
+    }
+    
+    private void swap(int[][] nm, int ni, int nj, int ci, int cj) {
+        int temp = nm[ci][cj];
+        nm[ci][cj] = nm[ni][nj];
+        nm[ni][nj] = temp;
+    }
+
+    private int getHeuristic(int cr, int cc) {
+        return Math.abs(cr - targetIJ.first) + Math.abs(cc - targetIJ.second);
+    }
+
+    public Pair<Integer, Integer> getZero(int[][] m) {
+        for (int i  = 0; i < m.length; i++) {
+            for (int j = 0; j < m[0].length; j++) {
+                if (m[i][j] == 0)
+                    return new Pair<Integer, Integer>(i, j);
+            }
+        }
+        return null; 
+    }
+}
+
+class BSNode {
+    int r, c;
+    int h;
+    int[][] mat;
+    BSNode parent;
+    public BSNode(int r, int c, int h, int[][] mat, BSNode parent) {
+        this.r = r;
+        this.c = c;
+        this.mat = mat;
+        this.parent = parent;
+        this.h = h;
+    }
+}
